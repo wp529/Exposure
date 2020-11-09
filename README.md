@@ -3,17 +3,16 @@
 ​	ExposureRecyclerView是一个封装了item曝光逻辑的RecyclerView，可以很方便的对RecyclerView进行曝光埋点。支持线性布局、网格布局、瀑布流布局。支持配置有效曝光面积和有效曝光时长。
 
 **添加依赖:**
-
 ```
 allprojects {
-		repositories {
-			...
-			maven { url 'https://jitpack.io' }
-		}
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
 	}
+}
 dependencies {
-	        implementation 'com.github.wp529:ExposureRecyclerView:1.0.1'
-	}
+	implementation 'com.github.wp529:ExposureRecyclerView:1.0.1'
+}
 ```
 
 **添加ExposureRecyclerView布局**
@@ -63,7 +62,7 @@ ExposureRecyclerView.onPause()
    }
    ```
 
-2. 直接获取当次曝光的结果
+2. 不参与曝光数据的统计，只负责上报曝光结果的一类SDK
 
    ```kotlin
    /**
