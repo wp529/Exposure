@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <declare-styleable name="ExposureRecyclerView">
-        <!--曝光的阈值,即大于这个值才算做一次有效曝光,单位毫秒-->
-        <attr name="exposure_threshold" format="integer" />
-        <!--曝光的面积,即大于这个面积才算做曝光 eg:设置为50% item的面积为100平方,则必须要展示50平方以上才算为曝光-->
-        <attr name="exposure_valid_area" format="fraction" />
-    </declare-styleable>
-</resources>

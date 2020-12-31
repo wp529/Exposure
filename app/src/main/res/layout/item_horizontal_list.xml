@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.wp.exposure.view.ExposureLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/exposureRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tvListText"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="#9a9a9a"
+        android:gravity="center"
+        android:textColor="#fff"
+        tools:text="TEXT" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#f00" />
+</com.wp.exposure.view.ExposureLinearLayout>
