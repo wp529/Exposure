@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.module.LoadMoreModule
 import com.chad.library.adapter.base.viewholder.BaseViewHolder
-import com.wp.exposure.view.ExposureRecyclerView
 import kotlinx.android.synthetic.main.activity_list.*
 import kotlinx.android.synthetic.main.item_list.view.*
 
@@ -16,11 +15,10 @@ import kotlinx.android.synthetic.main.item_list.view.*
  */
 class ListActivity : AppCompatActivity() {
     private lateinit var adapter: ListAdapter
-    private lateinit var rvList: ExposureRecyclerView<String>
+    private lateinit var recyclerViewExposureHelper: RecyclerViewExposureHelper<String>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list)
-        rvList = findViewById(R.id.rvList)
         initData()
         srlRefreshLayout.setOnRefreshListener {
             Log.d("ListActivity", "开始刷新列表")
@@ -61,33 +59,34 @@ class ListActivity : AppCompatActivity() {
                 adapter.removeAt(position)
             }
         }
-        rvList.exposureStateChangeListener = object : IExposureStateChangeListener<String> {
-            override fun onExposureStateChange(
-                bindExposureData: String,
-                position: Int,
-                inExposure: Boolean
-            ) {
-                Log.i(
-                    "ListActivity", "${bindExposureData}${
-                    if (inExposure) {
-                        "开始曝光"
-                    } else {
-                        "结束曝光"
-                    }
-                    }"
-                )
-            }
-        }
+        recyclerViewExposureHelper =
+            RecyclerViewExposureHelper(rvList, 50, object : IExposureStateChangeListener<String> {
+                override fun onExposureStateChange(
+                    bindExposureData: String,
+                    position: Int,
+                    inExposure: Boolean
+                ) {
+                    Log.i(
+                        "ListActivity", "${bindExposureData}${
+                        if (inExposure) {
+                            "开始曝光"
+                        } else {
+                            "结束曝光"
+                        }
+                        }"
+                    )
+                }
+            })
     }
 
     override fun onResume() {
         super.onResume()
-        rvList.onVisible()
+        recyclerViewExposureHelper.onVisible()
     }
 
     override fun onPause() {
         super.onPause()
-        rvList.onInvisible()
+        recyclerViewExposureHelper.onInvisible()
     }
 }
 

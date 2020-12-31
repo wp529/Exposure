@@ -1,9 +1,10 @@
 ### ExposureRecyclerView
 
-​	ExposureRecyclerView是一个封装了item曝光逻辑的RecyclerView，可以很方便的对RecyclerView进行曝光埋点。支持线性布局、网格布局、瀑布流布局。支持配置有效曝光面积和有效曝光时长。
+​	ExposureRecyclerView是一个很方便对RecyclerView的item进行曝光埋点的库，在现有代码上少量侵入即可实现RV的曝光埋点。支持RV的线性布局、网格布局、瀑布流布局，横向滑动曝光埋点。支持配置item的有效曝光面积。
 
 **添加依赖:**
-```
+
+```groovy
 allprojects {
 	repositories {
 		...
@@ -11,76 +12,94 @@ allprojects {
 	}
 }
 dependencies {
-	implementation 'com.github.wp529:ExposureRecyclerView:1.0.1'
+	implementation 'com.github.wp529:ExposureRecyclerView:1.1.0'
 }
 ```
 
-**添加ExposureRecyclerView布局**
+###### 使用方式：
 
-```
-<com.wp.exposure.ExposureRecyclerView
-        android:id="@+id/rvList"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:exposure_threshold="500"
-        app:exposure_valid_area="50%"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:listitem="@layout/item_list" />
-```
+1. 将ItemView的根布局替换为对应的LayoutView，内部提供了三个LayoutView，若需更多的LayoutView可以自行实现IProvideExposureData接口
 
-其中有两个属性用于判定是否为有效曝光
+   ExposureLinearLayout，ExposureFrameLayout，ExposureRelativeLayout
 
-1. exposure_threshold，曝光有效时长。即item一次展示大于这个值才记为一次有效曝光,单位毫秒
-2. exposure_valid_area，曝光有效面积。即可见区域大于这个面积才算做曝光。eg:item的总面积为100平方，设置为50%则代表item可见面积在50平方以上才算为曝光。0%则代表只要出现就算为曝光，100%则代表完全展示才算为曝光
-
-在Activity/Fragment中需调用
-
-```
-//须告知ExposureRecyclerView可见和不可见的状态切换以使得ExposureRecyclerView可以正确进行曝光相关的数据收集
-一般在Activity/Fragment的对应生命周期方法中调用即可
-ExposureRecyclerView.onResume()
-ExposureRecyclerView.onPause()
-```
-
-**获取曝光结果有两种方式，由数据统计SDK所需的方式其一选择即可**
-
-1. 数据统计SDK内部处理了曝光统计逻辑。即只用告知数据统计SDK什么时候item开始曝光、什么时候结束曝光的此类SDK，可使用如下方式
-
-   ```kotlin
-   //给ExposureRecyclerView设置IExposureStateChangeListener
-   interface IExposureStateChangeListener {
-       /**
-        * 曝光状态变更
-        * @param position 曝光状态变更的位置
-        * @param inExposure true为从非曝光状态转为曝光状态,false为从曝光状态转为非曝光状态
-        */
-       fun onExposureStateChange(position: Int, inExposure: Boolean)
-   }
+   ```xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <com.wp.exposure.view.ExposureFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+       xmlns:tools="http://schemas.android.com/tools"
+       android:id="@+id/exposureRoot"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="vertical">
+       <TextView
+           android:id="@+id/tvText"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           tools:text="TEXT" />
+   </com.wp.exposure.view.ExposureLinearLayout>
    ```
 
-2. 不参与曝光数据的统计，只负责上报曝光结果的一类SDK
+2. 在adapter为item设置数据时，为LayoutView绑定上曝光的数据
 
    ```kotlin
-   /**
-    * 此方法获取RecyclerView的曝光结果
-    * @param needResetAlreadyExposureList 是否需要重置已曝光列表
-    * @return 曝光结果数组
-    */
-   ExposureRecyclerView.getAlreadyExposureData(needResetAlreadyExposureList: Boolean = true): List<AlreadyExposureData>
-
-   //曝光结果为此模型的数组
-   data class AlreadyExposureData(
-     	// 曝光item的位置
-       var position: Int,
-     	// item曝光时长数组，列表在滑动过程中一个item可能不止进行一次曝光
-       // 所以此数组中的每个值为每次曝光的时长
-       var exposureTimeList: ArrayList<Long>
-   )
+   //注:这里的data对象最好实现了equals方法
+   exposureRoot.exposureBindData = data
    ```
 
+3. 在给RV设置完adapter后实例化RecyclerViewExposureHelper，实例化时需传递三个参数，需要做曝光埋点的RecyclerView，item曝光状态改变监听器(泛型类型为第二步中data的类型)，item的有效曝光面积判定，eg:设置为50 若item的面积为200平方,则必须要展示200 * 50% = 100平方及以上才算为曝光
 
+   ```kotlin
+   recyclerViewExposureHelper =
+               RecyclerViewExposureHelper(rvList, 50, object : IExposureStateChangeListener<String> {
+                   override fun onExposureStateChange(
+                       bindExposureData: String,
+                       position: Int,
+                       inExposure: Boolean
+                   ) {
+                       Log.i(
+                           "ListActivity", "${bindExposureData}${
+                           if (inExposure) {
+                               "开始曝光"
+                           } else {
+                               "结束曝光"
+                           }
+                           }"
+                       )
+                   }
+               })
+   ```
+
+4. 一般情况下在Activity/fragment的onResume和onPause调用即可
+
+   ```kotlin
+   //onResume
+   recyclerViewExposureHelper.onVisible()
+   //onPause
+   recyclerViewExposureHelper.onInvisible()
+   ```
+
+5. 若RV被嵌套在可滚动控件(eg:ScrollView,NestedScrollView,RecyclerView等)中，将会导致RecyclerViewExposureHelper持有的RV不能响应滑动的情况,就必须由外部告知RV被滚动了触发曝光收集
+
+至此，item曝光埋点接入完成，只需在**onExposureStateChange**回调中进行处理即可。**onExposureStateChange**回调会回传三个参数。item绑定的曝光数据，曝光状态改变的位置，曝光状态。曝光状态true代表item从未曝光状态进入曝光中状态，false代表item从曝光中状态进入结束曝光状态
+
+RecyclerView的item曝光埋点对客户端来说只用处理三个问题,此库的作用即是处理这三个问题
+
+* 可见面积是否为有效曝光
+
+* item可见(开始曝光)
+
+* item不可见(结束曝光)
+
+埋点SDK一般会提供三个api供客户端调用
+
+* onItemExposureStart()
+
+* onItemExposureEnd()
+
+* onItemExposureUpload()
+
+所以只需在特定**onExposureStateChange**调用埋点SDK的api即可,至于曝光时长是否为有效曝光由埋点SDK进行计算
+
+若没有中台(埋点SDK)，也可通过**onExposureStateChange**自行处理相关逻辑
+
+##### 可查看demo获知更多使用细节
 

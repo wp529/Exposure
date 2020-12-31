@@ -5,12 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.wp.exposure.ExposureRecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvFragmentList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:exposure_threshold="500"
-        app:exposure_valid_area="50%"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"

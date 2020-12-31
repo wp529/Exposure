@@ -2,13 +2,14 @@
 <com.wp.exposure.view.ExposureLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/exposureRoot"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:layout_marginRight="10dp"
+    android:orientation="horizontal">
 
     <TextView
-        android:id="@+id/tvListText"
-        android:layout_width="match_parent"
+        android:id="@+id/tvText"
+        android:layout_width="100dp"
         android:layout_height="100dp"
         android:background="#9a9a9a"
         android:gravity="center"
@@ -16,7 +17,7 @@
         tools:text="TEXT" />
 
     <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
+        android:layout_width="1dp"
+        android:layout_height="100dp"
         android:background="#f00" />
 </com.wp.exposure.view.ExposureLinearLayout>

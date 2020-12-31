@@ -7,7 +7,7 @@ import android.widget.LinearLayout
 import com.wp.exposure.IProvideExposureData
 
 /**
- * 最好是作为根布局使用且需配合ExposureRecyclerView使用
+ * 作为ItemView根布局使用的LinearLayout
  * create by WangPing
  * on 2020/12/30
  */
@@ -16,9 +16,7 @@ class ExposureLinearLayout @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     style: Int = 0
 ) : LinearLayout(context, attrs, style), IProvideExposureData {
-    //曝光item绑定的数据
     var exposureBindData: Any? = null
 
-    override fun provideData(): Any = exposureBindData
-        ?: throw IllegalArgumentException("当你配合ExposureRecyclerView使用时,必须保证exposureBindData已被赋值")
+    override fun provideData(): Any? = exposureBindData
 }

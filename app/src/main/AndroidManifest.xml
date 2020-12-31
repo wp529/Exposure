@@ -20,6 +20,8 @@
         <activity android:name=".GridActivity"/>
         <activity android:name=".StaggerActivity"/>
         <activity android:name=".VpFragmentActivity"/>
+        <activity android:name=".HorizontalRvActivity"/>
+        <activity android:name=".RvInScrollActivity"/>
     </application>
 
 </manifest>

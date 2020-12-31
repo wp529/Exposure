@@ -23,6 +23,12 @@ class MainActivity : AppCompatActivity() {
         tvVpFragment.setOnClickListener {
             startActivity(Intent(this, VpFragmentActivity::class.java))
         }
+        tvHorizontalRv.setOnClickListener {
+            startActivity(Intent(this, HorizontalRvActivity::class.java))
+        }
+        tvRvInScroll.setOnClickListener {
+            startActivity(Intent(this, RvInScrollActivity::class.java))
+        }
     }
 }
 

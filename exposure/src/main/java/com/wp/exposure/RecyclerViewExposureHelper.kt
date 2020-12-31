@@ -10,19 +10,38 @@ import com.wp.exposure.model.VisibleItemPositionRange
 import java.lang.ClassCastException
 
 /**
- * 曝光控制
+ * 为了减少收集异常,使用此库需注意以下几点
+ * 1.在RecyclerView从可见变为不可见时需主动调用onInvisible,以便正确触发item的结束曝光逻辑
+ * @see com.wp.exposure.RecyclerViewExposureHelper.onInvisible
+ * 2.在RecyclerView从不可见变为可见时需主动调用,以便正确触发item的开始曝光逻辑
+ * @see com.wp.exposure.RecyclerViewExposureHelper.onVisible
+ * 3.需配合实现了IProvideExposureData接口的LayoutView使用
+ * @see com.wp.exposure.IProvideExposureData
+ * 4.BindExposureData泛型实际类型最好重写equals方法。
+ *
+ * RecyclerView的item曝光埋点对客户端来说只用处理三个问题,此库的作用即是处理这三个问题
+ * 1.可见面积是否为有效曝光
+ * 2.item可见(开始曝光)
+ * 3.item不可见(结束曝光)
+ * 埋点SDK会提供三个api供客户端调用,1.onItemExposureStart() 2.onItemExposureEnd() 3.onItemExposureUpload()
+ * 所以只需在特定位置调用埋点SDK的api即可,至于曝光时长是否为有效曝光由埋点SDK进行计算
+ * @constructor 创建一个RecyclerView曝光收集实例,必传两个参数。
+ * @param recyclerView 需要收集曝光的RecyclerView
+ * @param exposureStateChangeListener 曝光状态改变监听器
+ * 非必传参数
+ * @param exposureValidAreaPercent 默认为0,判定曝光的面积,即大于这个面积才算做曝光,百分制,eg:设置为50 item的面积为200平方,则必须要展示200 * 50% = 100平方及以上才算为曝光
  * create by WangPing
  * on 2020/12/31
  */
-class ExposureControl<in BindExposureData> @JvmOverloads constructor(
+class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     private val recyclerView: RecyclerView,
     private val exposureValidAreaPercent: Int = 0,
     private val exposureStateChangeListener: IExposureStateChangeListener<BindExposureData>
 ) {
-    //处于曝光中的Item数据
+    //处于曝光中的Item数据集合
     private val inExposureDataList = ArrayList<InExposureData<BindExposureData>>()
 
-    //是否可见,不可见的状态就不触发收集了。主要是为了避免处于滚动惯性中然后退出后台
+    //是否可见,不可见的状态就不触发收集了。主要是为了避免RV处于滚动惯性中然后退出后台导致收集异常
     private var visible = true
 
     init {
@@ -33,30 +52,26 @@ class ExposureControl<in BindExposureData> @JvmOverloads constructor(
                     val startTime = System.currentTimeMillis()
                     recordExposureData()
                     Log.v(
-                        this@ExposureControl.logTag,
-                        "一次滑动计算曝光耗时: ${System.currentTimeMillis() - startTime}毫秒"
+                        this@RecyclerViewExposureHelper.logTag,
+                        "一次滑动收集曝光耗时: ${System.currentTimeMillis() - startTime}毫秒"
                     )
                 }
             }
         })
-        if (recyclerView.adapter == null) {
-            throw IllegalStateException("在使用ExposureControl时,RecyclerView必须已经设置了adapter")
-        }
-        recyclerView.adapter!!.registerAdapterDataObserver(
+        val adapter = recyclerView.adapter
+            ?: throw IllegalStateException("在初始化RecyclerViewExposureHelper之前,RecyclerView必须已经设置好了adapter")
+        adapter.registerAdapterDataObserver(
             object : RecyclerView.AdapterDataObserver() {
                 override fun onChanged() {
-                    Log.i(this@ExposureControl.logTag, "adapter数据全量刷新")
-                    //数据更改,分别需要做三种操作
-                    //1.处于曝光中的条目刷新后还处于曝光中,那么继续曝光
-                    //2.处于曝光中的条目刷新后不处于曝光了,那么结束曝光
-                    //3.将刷新后处于曝光中的条目,置为曝光
+                    Log.i(this@RecyclerViewExposureHelper.logTag, "adapter的item有改变")
+                    //item改变,触发重新收集
                     recyclerView.viewTreeObserver.addOnGlobalLayoutListener(object :
                         ViewTreeObserver.OnGlobalLayoutListener {
                         override fun onGlobalLayout() {
-                            //绑定的曝光数据刷新完毕
+                            //绑定的曝光数据刷新完毕后才重新收集
                             recyclerView.viewTreeObserver.removeOnGlobalLayoutListener(this)
                             //这里在删除或者添加数据时候如果有itemAnimator,那么可能会导致可见position区间获取不正确
-                            //因为在这里获取可见的position区间时动画才刚执行,肯定与动画执行完后各item的位置有差异,所以导致不正确
+                            //因为在这里获取可见的position区间时动画才刚执行,肯定与动画执行完后的item位置有差异,所以导致不正确
                             //暂不解决,解决可以获取RV的动画对象,然后监听动画完毕后再执行此方法
                             recordExposureData()
                         }
@@ -65,7 +80,7 @@ class ExposureControl<in BindExposureData> @JvmOverloads constructor(
 
                 override fun onItemRangeChanged(positionStart: Int, itemCount: Int) {
                     Log.i(
-                        this@ExposureControl.logTag,
+                        this@RecyclerViewExposureHelper.logTag,
                         "data onItemRangeChanged positionStart:$positionStart itemCount:$itemCount"
                     )
                     onChanged()
@@ -73,7 +88,7 @@ class ExposureControl<in BindExposureData> @JvmOverloads constructor(
 
                 override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
                     Log.i(
-                        this@ExposureControl.logTag,
+                        this@RecyclerViewExposureHelper.logTag,
                         "data onItemRangeInserted positionStart:$positionStart itemCount:$itemCount"
                     )
                     onChanged()
@@ -81,7 +96,7 @@ class ExposureControl<in BindExposureData> @JvmOverloads constructor(
 
                 override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
                     Log.i(
-                        this@ExposureControl.logTag,
+                        this@RecyclerViewExposureHelper.logTag,
                         "data onItemRangeRemoved positionStart:$positionStart itemCount:$itemCount"
                     )
                     onChanged()
@@ -93,7 +108,7 @@ class ExposureControl<in BindExposureData> @JvmOverloads constructor(
                     itemCount: Int
                 ) {
                     Log.i(
-                        this@ExposureControl.logTag,
+                        this@RecyclerViewExposureHelper.logTag,
                         "data onItemRangeMoved positionStart:$fromPosition toPosition:$fromPosition itemCount:$itemCount"
                     )
                     onChanged()
@@ -103,23 +118,34 @@ class ExposureControl<in BindExposureData> @JvmOverloads constructor(
     }
 
     /**
-     * 由外部告知ExposureControl处于可见状态,一般情况下跟随onResume生命周期调用
+     * 由外部告知RecyclerView处于可见状态,一般情况下跟随onResume生命周期调用
      * 触发曝光
      */
     fun onVisible() {
-        Log.v(this.logTag, "外部告知ExposureControl可见")
+        Log.v(this.logTag, "外部告知RecyclerView可见了")
         visible = true
         recordExposureData()
     }
 
     /**
-     * 由外部告知ExposureControl处于不可见状态,一般情况下跟随onPause生命周期调用
+     * 由外部告知RecyclerView处于不可见状态,一般情况下跟随onPause生命周期调用
      * 触发结束曝光
      */
     fun onInvisible() {
-        Log.v(this.logTag, "外部告知ExposureControl不可见")
+        Log.v(this.logTag, "外部告知RecyclerView不可见了")
         visible = false
         endExposure()
+    }
+
+    /**
+     * 一般用于RecyclerView被嵌套在可滚动布局中(eg:ScrollView,NestedScrollView,RecyclerView等),导致RecyclerViewExposureHelper持有的RV不能响应滑动的情况,就必须由外部告知RV被滚动了触发曝光收集
+     * 虽然Google强烈建议不能把RecyclerView嵌套在滚动布局中,但在实际开发中仍然存在复杂的业务逻辑导致难以避免这样的用法,故提供此方法由外部调用
+     */
+    fun onScroll() {
+        if (visible) {
+            Log.v(this.logTag, "外部告知RecyclerView滚动了")
+            recordExposureData()
+        }
     }
 
     //收集开始曝光和结束曝光的数据
@@ -198,10 +224,16 @@ class ExposureControl<in BindExposureData> @JvmOverloads constructor(
 
     //获取position绑定的曝光数据
     private fun getExposureDataByPosition(position: Int): InExposureData<BindExposureData>? {
+        val provideExposureData =
+            recyclerView.layoutManager?.findViewByPosition(position) as? IProvideExposureData
+        if (provideExposureData == null) {
+            Log.w(this.logTag, "position为${position}的ItemView没有实现IProvideExposureData接口,无法处理曝光")
+            return null
+        }
         @Suppress("UNCHECKED_CAST")
-        val positionBindExposureData =
-            (recyclerView.layoutManager?.findViewByPosition(position) as? IProvideExposureData)?.provideData() as? BindExposureData
+        val positionBindExposureData = provideExposureData.provideData() as? BindExposureData
         return if (positionBindExposureData == null) {
+            Log.e(this.logTag, "position为${position}的ItemView没有设置曝光数据,无法处理曝光}")
             null
         } else {
             InExposureData(
@@ -238,7 +270,10 @@ class ExposureControl<in BindExposureData> @JvmOverloads constructor(
                 inExposure = inExposure
             )
         } catch (e: ClassCastException) {
-            Log.e(logTag, "给曝光item设置的数据类型与ExposureRecyclerView泛型不一致,无法正常上报")
+            Log.e(
+                logTag,
+                "无法正常上报!!!请检查在adapter中设置的曝光数据类型是否与RecyclerViewExposureHelper传入的泛型实际类型一致"
+            )
         }
     }
 }

@@ -29,4 +29,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="VP+Fragment中使用" />
+
+    <Button
+        android:id="@+id/tvHorizontalRv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="横向滚动的RV" />
+
+    <Button
+        android:id="@+id/tvRvInScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="RV被嵌套在可滚动控件中的情况" />
 </LinearLayout>

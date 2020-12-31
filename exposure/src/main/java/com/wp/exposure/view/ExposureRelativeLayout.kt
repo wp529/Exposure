@@ -5,18 +5,19 @@ import android.util.AttributeSet
 import android.util.Log
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import com.wp.exposure.IProvideExposureData
 
 /**
- * 作为ItemView根布局使用的FrameLayout
+ * 作为ItemView根布局使用的RelativeLayout
  * create by WangPing
  * on 2020/12/30
  */
-class ExposureLayout @JvmOverloads constructor(
+class ExposureRelativeLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     style: Int = 0
-) : FrameLayout(context, attrs, style), IProvideExposureData {
+) : RelativeLayout(context, attrs, style), IProvideExposureData {
     var exposureBindData: Any? = null
 
     override fun provideData(): Any? = exposureBindData

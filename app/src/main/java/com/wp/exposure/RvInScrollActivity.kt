@@ -3,36 +3,20 @@ package com.wp.exposure
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import com.chad.library.adapter.base.BaseQuickAdapter
-import com.chad.library.adapter.base.module.LoadMoreModule
-import com.chad.library.adapter.base.viewholder.BaseViewHolder
-import kotlinx.android.synthetic.main.activity_list.*
-import kotlinx.android.synthetic.main.item_list.view.*
+import androidx.core.widget.NestedScrollView
+import kotlinx.android.synthetic.main.activity_rv_in_scroll.*
 
 /**
  * create by WangPing
  * on 2020/11/6
  */
-class ListActivity : AppCompatActivity() {
+class RvInScrollActivity : AppCompatActivity() {
     private lateinit var adapter: ListAdapter
     private lateinit var recyclerViewExposureHelper: RecyclerViewExposureHelper<String>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_list)
+        setContentView(R.layout.activity_rv_in_scroll)
         initData()
-        srlRefreshLayout.setOnRefreshListener {
-            Log.d("ListActivity", "开始刷新列表")
-            srlRefreshLayout.postDelayed({
-                //模拟两秒才请求完数据
-                val list = ArrayList<String>()
-                repeat(20) {
-                    list.add("下拉刷新生成的数据$it")
-                }
-                adapter.setNewInstance(list)
-                srlRefreshLayout.isRefreshing = false
-                Log.d("ListActivity", "刷新数据更新完毕")
-            }, 2 * 1000L)
-        }
     }
 
     private fun initData() {
@@ -43,7 +27,7 @@ class ListActivity : AppCompatActivity() {
         adapter = ListAdapter(list).apply {
             rvList.adapter = this
             loadMoreModule.setOnLoadMoreListener {
-                Log.d("ListActivity", "开始加载更多数据")
+                Log.d("RvInScrollActivity", "开始加载更多数据")
                 rvList.postDelayed({
                     //模拟两秒才请求完数据
                     val moreData = ArrayList<String>()
@@ -51,11 +35,11 @@ class ListActivity : AppCompatActivity() {
                         moreData.add("加载更多生成的数据$it")
                     }
                     adapter.addData(moreData)
-                    Log.d("ListActivity", "加载更多数据添加完毕")
+                    Log.d("RvInScrollActivity", "加载更多数据添加完毕")
                 }, 2 * 1000L)
             }
             setOnItemClickListener { adapter, _, position ->
-                Log.d("ListActivity", "${adapter.data[position]}被删除了")
+                Log.d("RvInScrollActivity", "${adapter.data[position]}被删除了")
                 adapter.removeAt(position)
             }
         }
@@ -70,7 +54,7 @@ class ListActivity : AppCompatActivity() {
                         inExposure: Boolean
                     ) {
                         Log.i(
-                            "ListActivity", "${bindExposureData}${
+                            "RvInScrollActivity", "${bindExposureData}${
                             if (inExposure) {
                                 "开始曝光"
                             } else {
@@ -80,6 +64,10 @@ class ListActivity : AppCompatActivity() {
                         )
                     }
                 })
+        scrollView.setOnScrollChangeListener { _: NestedScrollView?, _: Int, _: Int, _: Int, _: Int ->
+            //外部告知recyclerView滚动了
+            recyclerViewExposureHelper.onScroll()
+        }
     }
 
     override fun onResume() {
@@ -93,12 +81,3 @@ class ListActivity : AppCompatActivity() {
     }
 }
 
-class ListAdapter(data: MutableList<String>) : LoadMoreModule,
-    BaseQuickAdapter<String, BaseViewHolder>(R.layout.item_list, data) {
-    override fun convert(holder: BaseViewHolder, item: String) {
-        holder.itemView.apply {
-            exposureRoot.exposureBindData = item
-            tvListText.text = item
-        }
-    }
-}

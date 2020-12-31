@@ -5,14 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvStagger"
+        android:id="@+id/rvHorizontal"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:spanCount="2"
-        app:layoutManager="androidx.recyclerview.widget.StaggeredGridLayoutManager"
+        android:orientation="horizontal"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:listitem="@layout/item_stagger" />
+        tools:listitem="@layout/item_horizontal_list" />
 </androidx.constraintlayout.widget.ConstraintLayout>
