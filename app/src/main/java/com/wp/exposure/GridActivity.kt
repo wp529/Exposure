@@ -62,6 +62,7 @@ class GridActivity : AppCompatActivity() {
         recyclerViewExposureHelper = RecyclerViewExposureHelper(
             recyclerView = rvGrid,
             exposureValidAreaPercent = 50,
+            lifecycleOwner = this,
             exposureStateChangeListener = object : IExposureStateChangeListener<GridData> {
                 override fun onExposureStateChange(
                     bindExposureData: GridData,
@@ -80,16 +81,6 @@ class GridActivity : AppCompatActivity() {
                 }
             }
         )
-    }
-
-    override fun onResume() {
-        super.onResume()
-        recyclerViewExposureHelper.onVisible()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        recyclerViewExposureHelper.onInvisible()
     }
 }
 

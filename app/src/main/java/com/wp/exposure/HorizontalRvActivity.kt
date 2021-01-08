@@ -29,6 +29,7 @@ class HorizontalRvActivity : AppCompatActivity() {
             RecyclerViewExposureHelper(
                 recyclerView = rvHorizontal,
                 exposureValidAreaPercent = 50,
+                lifecycleOwner = this,
                 exposureStateChangeListener = object : IExposureStateChangeListener<String> {
                     override fun onExposureStateChange(
                         bindExposureData: String,
@@ -47,16 +48,6 @@ class HorizontalRvActivity : AppCompatActivity() {
                         )
                     }
                 })
-    }
-
-    override fun onResume() {
-        super.onResume()
-        recyclerViewExposureHelper.onVisible()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        recyclerViewExposureHelper.onInvisible()
     }
 }
 

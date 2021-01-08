@@ -45,6 +45,7 @@ class ListFragment : Fragment() {
             recyclerViewExposureHelper = RecyclerViewExposureHelper(
                 recyclerView = rvFragmentList,
                 exposureValidAreaPercent = 50,
+                lifecycleOwner = this@ListFragment,
                 exposureStateChangeListener = object : IExposureStateChangeListener<String> {
                     override fun onExposureStateChange(
                         bindExposureData: String,
@@ -66,15 +67,5 @@ class ListFragment : Fragment() {
             )
         }
         return view
-    }
-
-    override fun onResume() {
-        super.onResume()
-        recyclerViewExposureHelper.onVisible()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        recyclerViewExposureHelper.onInvisible()
     }
 }

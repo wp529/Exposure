@@ -46,11 +46,11 @@ dependencies {
    exposureRoot.exposureBindData = data
    ```
 
-3. 在给RV设置完adapter后实例化RecyclerViewExposureHelper，实例化时需传递三个参数，需要做曝光埋点的RecyclerView，item曝光状态改变监听器(泛型类型为第二步中data的类型)，item的有效曝光面积判定，eg:设置为50 若item的面积为200平方,则必须要展示200 * 50% = 100平方及以上才算为曝光
+3. 在给RV设置完adapter后实例化RecyclerViewExposureHelper，实例化时需传递四个参数，需要做曝光埋点的RV，RV所在的生命周期组件容器(用于自动处理开始曝光和结束曝光),item曝光状态改变监听器(泛型类型为第二步中data的类型)，item的有效曝光面积判定，eg:设置为50 若item的面积为200平方,则必须要展示200 * 50% = 100平方及以上才算为曝光
 
    ```kotlin
    recyclerViewExposureHelper =
-               RecyclerViewExposureHelper(rvList, 50, object : IExposureStateChangeListener<String> {
+               RecyclerViewExposureHelper(rvList, 50, lifecycleOwner, object : IExposureStateChangeListener<String> {
                    override fun onExposureStateChange(
                        bindExposureData: String,
                        position: Int,
@@ -68,17 +68,7 @@ dependencies {
                    }
                })
    ```
-
-4. 一般情况下在Activity/fragment的onResume和onPause调用即可
-
-   ```kotlin
-   //onResume
-   recyclerViewExposureHelper.onVisible()
-   //onPause
-   recyclerViewExposureHelper.onInvisible()
-   ```
-
-5. 若RV被嵌套在可滚动控件(eg:ScrollView,NestedScrollView,RecyclerView等)中，将会导致RecyclerViewExposureHelper持有的RV不能响应滑动的情况,就必须由外部告知RV被滚动了触发曝光收集
+4. 若RV被嵌套在可滚动控件(eg:ScrollView,NestedScrollView,RecyclerView等)中，将会导致RecyclerViewExposureHelper持有的RV不能响应滑动的情况,就必须由外部告知RV被滚动了触发曝光收集
 
 至此，item曝光埋点接入完成，只需在**onExposureStateChange**回调中进行处理即可。**onExposureStateChange**回调会回传三个参数。item绑定的曝光数据，曝光状态改变的位置，曝光状态。曝光状态true代表item从未曝光状态进入曝光中状态，false代表item从曝光中状态进入结束曝光状态
 
@@ -98,9 +88,9 @@ RecyclerView的item曝光埋点对客户端来说只用处理三个问题,此库
 
 * onItemExposureUpload()
 
-所以只需在特定**onExposureStateChange**调用埋点SDK的api即可,至于曝光时长是否为有效曝光由埋点SDK进行计算
+所以只需在**onExposureStateChange**里调用埋点SDK对应的api即可,至于曝光时长是否为有效曝光一般由埋点SDK进行计算
 
 若没有中台(埋点SDK)，也可通过**onExposureStateChange**自行处理相关逻辑
 
-##### 可查看demo获知更多使用细节
+##### 可查看demo获知更多使用姿势
 

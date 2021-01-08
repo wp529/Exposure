@@ -2,6 +2,10 @@ package com.wp.exposure
 
 import android.util.Log
 import android.view.ViewTreeObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.OnLifecycleEvent
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -11,13 +15,9 @@ import java.lang.ClassCastException
 
 /**
  * 为了减少收集异常,使用此库需注意以下几点
- * 1.在RecyclerView从可见变为不可见时需主动调用onInvisible,以便正确触发item的结束曝光逻辑
- * @see com.wp.exposure.RecyclerViewExposureHelper.onInvisible
- * 2.在RecyclerView从不可见变为可见时需主动调用,以便正确触发item的开始曝光逻辑
- * @see com.wp.exposure.RecyclerViewExposureHelper.onVisible
- * 3.需配合实现了IProvideExposureData接口的LayoutView使用
+ * 1.需配合实现了IProvideExposureData接口的LayoutView使用
  * @see com.wp.exposure.IProvideExposureData
- * 4.BindExposureData泛型实际类型最好重写equals方法。
+ * 2.BindExposureData泛型实际类型最好重写equals方法。
  *
  * RecyclerView的item曝光埋点对客户端来说只用处理三个问题,此库的作用即是处理这三个问题
  * 1.可见面积是否为有效曝光
@@ -29,6 +29,7 @@ import java.lang.ClassCastException
  * @param recyclerView 需要收集曝光的RecyclerView
  * @param exposureStateChangeListener 曝光状态改变监听器
  * 非必传参数
+ * @param lifecycleOwner RecyclerView感知此生命周期组件,根据生命周期感知RV可见性,以便自动处理开始曝光和结束曝光,一般情况RV在Activity中传Activity,在Fragment中传Fragment
  * @param exposureValidAreaPercent 默认为0,判定曝光的面积,即大于这个面积才算做曝光,百分制,eg:设置为50 item的面积为200平方,则必须要展示200 * 50% = 100平方及以上才算为曝光
  * create by WangPing
  * on 2020/12/31
@@ -36,7 +37,8 @@ import java.lang.ClassCastException
 class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     private val recyclerView: RecyclerView,
     private val exposureValidAreaPercent: Int = 0,
-    private val exposureStateChangeListener: IExposureStateChangeListener<BindExposureData>
+    private val exposureStateChangeListener: IExposureStateChangeListener<BindExposureData>,
+    private val lifecycleOwner: LifecycleOwner? = null
 ) {
     //处于曝光中的Item数据集合
     private val inExposureDataList = ArrayList<InExposureData<BindExposureData>>()
@@ -115,11 +117,23 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
                 }
             }
         )
+        //感知生命周期
+        lifecycleOwner?.lifecycle?.addObserver(object : LifecycleObserver {
+            @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+            fun onResume() {
+                onVisible()
+            }
+
+            @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+            fun onPause() {
+                onInvisible()
+            }
+        })
     }
 
     /**
-     * 由外部告知RecyclerView处于可见状态,一般情况下跟随onResume生命周期调用
-     * 触发曝光
+     * 若传递了生命周期组件,那么常规场景下RecyclerViewExposureHelper会自动感知RV变更为可见状态并调用此方法。
+     * 但可能实际的业务场景会出现非常规情况,所以仍可让外部告知RV处于可见状态以便触发曝光
      */
     fun onVisible() {
         Log.v(this.logTag, "外部告知RecyclerView可见了")
@@ -128,8 +142,8 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     }
 
     /**
-     * 由外部告知RecyclerView处于不可见状态,一般情况下跟随onPause生命周期调用
-     * 触发结束曝光
+     * 若传递了生命周期组件,那么常规场景下RecyclerViewExposureHelper会自动感知RV变更为可见状态并调用此方法。
+     * 但可能实际的业务场景会出现非常规情况,所以仍可让外部告知RV处于不可见状态以便触发结束曝光
      */
     fun onInvisible() {
         Log.v(this.logTag, "外部告知RecyclerView不可见了")

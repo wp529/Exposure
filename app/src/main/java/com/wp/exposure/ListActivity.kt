@@ -60,33 +60,27 @@ class ListActivity : AppCompatActivity() {
             }
         }
         recyclerViewExposureHelper =
-            RecyclerViewExposureHelper(rvList, 50, object : IExposureStateChangeListener<String> {
-                override fun onExposureStateChange(
-                    bindExposureData: String,
-                    position: Int,
-                    inExposure: Boolean
-                ) {
-                    Log.i(
-                        "ListActivity", "${bindExposureData}${
-                        if (inExposure) {
-                            "开始曝光"
-                        } else {
-                            "结束曝光"
-                        }
-                        }"
-                    )
-                }
-            })
-    }
-
-    override fun onResume() {
-        super.onResume()
-        recyclerViewExposureHelper.onVisible()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        recyclerViewExposureHelper.onInvisible()
+            RecyclerViewExposureHelper(
+                recyclerView = rvList,
+                exposureValidAreaPercent = 50,
+                lifecycleOwner = this,
+                exposureStateChangeListener = object : IExposureStateChangeListener<String> {
+                    override fun onExposureStateChange(
+                        bindExposureData: String,
+                        position: Int,
+                        inExposure: Boolean
+                    ) {
+                        Log.i(
+                            "ListActivity", "${bindExposureData}${
+                            if (inExposure) {
+                                "开始曝光"
+                            } else {
+                                "结束曝光"
+                            }
+                            }"
+                        )
+                    }
+                })
     }
 }
 

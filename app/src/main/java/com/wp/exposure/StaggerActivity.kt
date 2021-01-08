@@ -27,6 +27,7 @@ class StaggerActivity : AppCompatActivity() {
             RecyclerViewExposureHelper(
                 recyclerView = rvStagger,
                 exposureValidAreaPercent = 50,
+                lifecycleOwner = this,
                 exposureStateChangeListener = object : IExposureStateChangeListener<String> {
                     override fun onExposureStateChange(
                         bindExposureData: String,
@@ -56,16 +57,6 @@ class StaggerActivity : AppCompatActivity() {
             }
             rvStagger.adapter?.notifyDataSetChanged()
         }, 2000)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        recyclerViewExposureHelper.onVisible()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        recyclerViewExposureHelper.onInvisible()
     }
 }
 
