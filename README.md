@@ -1,3 +1,4 @@
+[![](https://jitpack.io/v/wp529/ExposureRecyclerView.svg)](https://jitpack.io/#wp529/ExposureRecyclerView)
 ### ExposureRecyclerView
 
 ​	ExposureRecyclerView是一个很方便对RecyclerView的item进行曝光埋点的库，在现有代码上少量侵入即可实现RV的曝光埋点。支持RV的线性布局、网格布局、瀑布流布局，横向滑动曝光埋点。支持配置item的有效曝光面积。
