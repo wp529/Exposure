@@ -13,7 +13,7 @@ allprojects {
 	}
 }
 dependencies {
-	implementation 'com.github.wp529:ExposureRecyclerView:1.1.0'
+	implementation 'com.github.wp529:ExposureRecyclerView:1.1.1'
 }
 ```
 
