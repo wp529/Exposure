@@ -22,6 +22,7 @@
         <activity android:name=".VpFragmentActivity"/>
         <activity android:name=".HorizontalRvActivity"/>
         <activity android:name=".RvInScrollActivity"/>
+        <activity android:name=".ExposureInChildActivity"/>
     </application>
 
 </manifest>

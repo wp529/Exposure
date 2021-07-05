@@ -41,4 +41,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="RV被嵌套在可滚动控件中的情况" />
+
+    <Button
+        android:id="@+id/tvChildCanExposure"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="子View设置曝光数据的情况" />
 </LinearLayout>

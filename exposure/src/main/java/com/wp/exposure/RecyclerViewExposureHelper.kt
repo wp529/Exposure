@@ -1,6 +1,8 @@
 package com.wp.exposure
 
 import android.util.Log
+import android.view.View
+import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
@@ -167,28 +169,24 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
         val layoutManager = recyclerView.layoutManager ?: return
         val visibleItemPositionRange = getVisibleItemPositionRange(layoutManager) ?: return
         //View可见不代表满足曝光中的条件。例如业务要求可见面积大于50%才算曝光中
-        val visiblePositions = visibleItemPositionRange.let {
-            (it.firstVisibleItemPosition..it.lastVisibleItemPosition).filter { position ->
-                //可见面积大于业务要求才算曝光中
-                layoutManager.findViewByPosition(position)
-                    .getVisibleAreaPercent() >= exposureValidAreaPercent
-            }
-        }
+        val visiblePositions = IntRange(visibleItemPositionRange.firstVisibleItemPosition,visibleItemPositionRange.lastVisibleItemPosition)
         Log.d(this.logTag, "当前可见的position范围: $visiblePositions")
         //当前所有可见的曝光中的数据
         val currentVisibleBindExposureDataList = ArrayList<InExposureData<BindExposureData>>()
         for (visiblePosition in visiblePositions) {
-            val visiblePositionBindExposureData =
-                getExposureDataByPosition(visiblePosition) ?: continue
-            currentVisibleBindExposureDataList.add(visiblePositionBindExposureData)
-            if (visiblePositionBindExposureData !in inExposureDataList) {
-                //当前可见位置不在曝光中集合,代表是从不可见变为可见,那么此position开始曝光
-                inExposureDataList.add(visiblePositionBindExposureData)
-                invokeExposureStateChange(
-                    visiblePositionBindExposureData.data,
-                    visiblePosition,
-                    true
-                )
+            val visiblePositionBindExposureDataList =
+                getExposureDataListByPosition(visiblePosition) ?: continue
+            currentVisibleBindExposureDataList.addAll(visiblePositionBindExposureDataList)
+            visiblePositionBindExposureDataList.forEach { visiblePositionBindExposureData ->
+                if (visiblePositionBindExposureData !in inExposureDataList) {
+                    //当前可见位置不在曝光中集合,代表是从不可见变为可见,那么此position开始曝光
+                    inExposureDataList.add(visiblePositionBindExposureData)
+                    invokeExposureStateChange(
+                        visiblePositionBindExposureData.data,
+                        visiblePosition,
+                        true
+                    )
+                }
             }
         }
         inExposureDataList.filter { inExposureData ->
@@ -237,24 +235,45 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     }
 
     //获取position绑定的曝光数据
-    private fun getExposureDataByPosition(position: Int): InExposureData<BindExposureData>? {
-        val provideExposureData =
-            recyclerView.layoutManager?.findViewByPosition(position) as? IProvideExposureData
-        if (provideExposureData == null) {
+    private fun getExposureDataListByPosition(position: Int): List<InExposureData<BindExposureData>>? {
+        val provideExposureDataViewList =
+            findAllProvideExposureDataView(recyclerView.layoutManager?.findViewByPosition(position))
+        if (provideExposureDataViewList == null) {
             Log.w(this.logTag, "position为${position}的ItemView没有实现IProvideExposureData接口,无法处理曝光")
             return null
         }
+        val inExposureDataListResult = ArrayList<InExposureData<BindExposureData>>()
         @Suppress("UNCHECKED_CAST")
-        val positionBindExposureData = provideExposureData.provideData() as? BindExposureData
-        return if (positionBindExposureData == null) {
-            Log.e(this.logTag, "position为${position}的ItemView没有设置曝光数据,无法处理曝光}")
-            null
-        } else {
-            InExposureData(
-                positionBindExposureData,
-                position
-            )
+        provideExposureDataViewList.forEach {
+            val bindExposureData = it.provideData() as? BindExposureData
+            if (bindExposureData != null) {
+                inExposureDataListResult.add(
+                    InExposureData(
+                        bindExposureData,
+                        position
+                    )
+                )
+            }
         }
+        return inExposureDataListResult
+    }
+
+    //最多只找到rootView的直接子View,不再向下找了,怕影响性能。一般都能满足需求了
+    private fun findAllProvideExposureDataView(rootView: View?): List<IProvideExposureData>? {
+        rootView ?: return null
+        val provideExposureDataViewList = ArrayList<IProvideExposureData>()
+        if (rootView is IProvideExposureData && rootView.getVisibleAreaPercent() >= exposureValidAreaPercent) {
+            provideExposureDataViewList.add(rootView)
+        }
+        if (rootView is ViewGroup) {
+            repeat(rootView.childCount) {
+                val child = rootView.getChildAt(it)
+                if (child is IProvideExposureData && child.getVisibleAreaPercent() >= exposureValidAreaPercent) {
+                    provideExposureDataViewList.add(child)
+                }
+            }
+        }
+        return provideExposureDataViewList
     }
 
     //将处于曝光的item全部结束曝光

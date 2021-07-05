@@ -29,6 +29,9 @@ class MainActivity : AppCompatActivity() {
         tvRvInScroll.setOnClickListener {
             startActivity(Intent(this, RvInScrollActivity::class.java))
         }
+        tvChildCanExposure.setOnClickListener {
+            startActivity(Intent(this, ExposureInChildActivity::class.java))
+        }
     }
 }
 
