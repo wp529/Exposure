@@ -156,15 +156,17 @@ class ViewGroupExposureHelper<in BindExposureData> @JvmOverloads constructor(
                 }
             } else if (childView is ViewGroup) {
                 if (childView is RecyclerView) {
-                    if (!skipRecyclerView) {
+                    if (!skipRecyclerView && childView.visibility == View.VISIBLE) {
                         currentVisibleBindExposureDataList.addAll(
                             getViewGroupVisibleBindExposureDataList(childView)
                         )
                     }
                 } else {
-                    currentVisibleBindExposureDataList.addAll(
-                        getViewGroupVisibleBindExposureDataList(childView)
-                    )
+                    if (childView.visibility == View.VISIBLE) {
+                        currentVisibleBindExposureDataList.addAll(
+                            getViewGroupVisibleBindExposureDataList(childView)
+                        )
+                    }
                 }
             }
         }
