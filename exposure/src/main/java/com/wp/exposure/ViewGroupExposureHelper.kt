@@ -8,6 +8,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.OnLifecycleEvent
+import androidx.recyclerview.widget.RecyclerView
 import com.wp.exposure.model.InExposureData
 import java.lang.ClassCastException
 
@@ -24,6 +25,7 @@ import java.lang.ClassCastException
  * 非必传参数
  * @param lifecycleOwner ViewGroupExposureHelper感知此生命周期组件,根据生命周期感知可见性,以便自动处理开始曝光和结束曝光,一般情况ViewGroup在Activity中传Activity,在Fragment中传Fragment
  * @param exposureValidAreaPercent 默认为0,判定曝光的面积,即大于这个面积才算做曝光,百分制,eg:设置为50 item的面积为200平方,则必须要展示200 * 50% = 100平方及以上才算为曝光
+ * @param skipRecyclerView 是否需要跳过RecyclerView的Item曝光收集
  * create by WangPing
  * on 2020/07/08
  */
@@ -31,7 +33,8 @@ class ViewGroupExposureHelper<in BindExposureData> @JvmOverloads constructor(
     private val rootView: ViewGroup,
     private val exposureValidAreaPercent: Int = 0,
     private val exposureStateChangeListener: IExposureStateChangeListener<BindExposureData>,
-    private val lifecycleOwner: LifecycleOwner? = null
+    private val lifecycleOwner: LifecycleOwner? = null,
+    private val skipRecyclerView: Boolean = true
 ) {
     //处于曝光中的Item数据集合
     private val inExposureDataList = ArrayList<InExposureData<BindExposureData>>()
@@ -152,9 +155,17 @@ class ViewGroupExposureHelper<in BindExposureData> @JvmOverloads constructor(
                     }
                 }
             } else if (childView is ViewGroup) {
-                currentVisibleBindExposureDataList.addAll(
-                    getViewGroupVisibleBindExposureDataList(childView)
-                )
+                if (childView is RecyclerView) {
+                    if (!skipRecyclerView) {
+                        currentVisibleBindExposureDataList.addAll(
+                            getViewGroupVisibleBindExposureDataList(childView)
+                        )
+                    }
+                } else {
+                    currentVisibleBindExposureDataList.addAll(
+                        getViewGroupVisibleBindExposureDataList(childView)
+                    )
+                }
             }
         }
         return currentVisibleBindExposureDataList
