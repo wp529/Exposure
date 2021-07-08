@@ -139,7 +139,7 @@ class ViewGroupExposureHelper<in BindExposureData> @JvmOverloads constructor(
         repeat(viewGroup.childCount) {
             val childView = viewGroup.getChildAt(it)
             if (childView is IProvideExposureData) {
-                //当前子View需要收集曝光
+                //当前子View需要收集曝光,不再向此childView的子View传递
                 if (childView.visibility == View.VISIBLE && childView.getVisibleAreaPercent() >= exposureValidAreaPercent) {
                     //满足曝光条件
                     @Suppress("UNCHECKED_CAST")
