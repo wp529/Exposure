@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:ignore="HardcodedText">
+
+    <com.wp.exposure.view.ExposureFrameLayout
+        android:id="@+id/test1"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="#f3f3f3">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="test1"
+            android:textSize="30sp" />
+    </com.wp.exposure.view.ExposureFrameLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.wp.exposure.view.ExposureFrameLayout
+                android:id="@+id/test3"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:background="#0f0">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="test3"
+                    android:textSize="30sp" />
+            </com.wp.exposure.view.ExposureFrameLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="500dp" />
+
+            <com.wp.exposure.view.ExposureFrameLayout
+                android:id="@+id/test4"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:background="#00f">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="test4"
+                    android:textSize="30sp" />
+            </com.wp.exposure.view.ExposureFrameLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <com.wp.exposure.view.ExposureFrameLayout
+        android:id="@+id/test2"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="#f00">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="test2"
+            android:textSize="30sp" />
+    </com.wp.exposure.view.ExposureFrameLayout>
+
+</LinearLayout>

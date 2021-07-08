@@ -32,6 +32,9 @@ class MainActivity : AppCompatActivity() {
         tvChildCanExposure.setOnClickListener {
             startActivity(Intent(this, ExposureInChildActivity::class.java))
         }
+        tvCollectViewGroup.setOnClickListener {
+            startActivity(Intent(this, CollectViewGroupActivity::class.java))
+        }
     }
 }
 
