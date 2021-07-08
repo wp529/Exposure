@@ -92,8 +92,7 @@ dependencies {
                       }
                   })
       ```
-   4.1 若ViewGroup中需要收集的子View在可滚动的布局中,那么在滚动时,需调用viewGroupViewExposureHelper.onScroll()
-   4.2 若ViewGroup中需要收集的子View Visible状态变更,那么需调用需调用viewGroupViewExposureHelper.childViewVisibleChange()
+   4.1 若ViewGroup中需要收集的子View在可滚动的布局中,那么在滚动时,需调用viewGroupViewExposureHelper.onScroll()，若ViewGroup中需要收集的子View Visible状态变更,那么需调用需调用viewGroupViewExposureHelper.childViewVisibleChange()
 至此，item曝光埋点接入完成，只需在**onExposureStateChange**回调中进行处理即可。**onExposureStateChange**回调会回传三个参数。item绑定的曝光数据，曝光状态改变的位置，曝光状态。曝光状态true代表item从未曝光状态进入曝光中状态，false代表item从曝光中状态进入结束曝光状态
 
 RecyclerView的item曝光埋点对客户端来说只用处理三个问题,此库的作用即是处理这三个问题
