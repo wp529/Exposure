@@ -34,7 +34,8 @@ class ViewGroupExposureHelper<in BindExposureData> @JvmOverloads constructor(
     private val exposureValidAreaPercent: Int = 0,
     private val exposureStateChangeListener: IExposureStateChangeListener<BindExposureData>,
     private val lifecycleOwner: LifecycleOwner? = null,
-    private val skipRecyclerView: Boolean = true
+    private val skipRecyclerView: Boolean = true,
+    mayBeHaveCoveredView: Boolean = true
 ) {
     //处于曝光中的Item数据集合
     private val inExposureDataList = ArrayList<InExposureData<BindExposureData>>()
@@ -42,7 +43,15 @@ class ViewGroupExposureHelper<in BindExposureData> @JvmOverloads constructor(
     //是否可见,不可见的状态就不触发收集了。
     private var visible = true
 
+    //可能遮挡ViewGroup的View集合
+    private var maybeCoverViewGroupViewList: List<View>? = null
+
     init {
+        maybeCoverViewGroupViewList = if (mayBeHaveCoveredView) {
+            rootView.getParentsBrotherLevelViewList()
+        } else {
+            null
+        }
         //感知生命周期
         lifecycleOwner?.lifecycle?.addObserver(object : LifecycleObserver {
             @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
@@ -140,7 +149,7 @@ class ViewGroupExposureHelper<in BindExposureData> @JvmOverloads constructor(
             val childView = viewGroup.getChildAt(it)
             if (childView is IProvideExposureData) {
                 //当前子View需要收集曝光,不再向此childView的子View传递
-                if (childView.visibility == View.VISIBLE && childView.getVisibleAreaPercent() >= exposureValidAreaPercent) {
+                if (childView.visibility == View.VISIBLE && childView.getVisibleAreaPercent(maybeCoverViewGroupViewList) >= exposureValidAreaPercent) {
                     //满足曝光条件
                     @Suppress("UNCHECKED_CAST")
                     val bindExposureData = childView.provideData() as? BindExposureData

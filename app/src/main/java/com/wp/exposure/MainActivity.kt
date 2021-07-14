@@ -14,6 +14,11 @@ class MainActivity : AppCompatActivity() {
         tvList.setOnClickListener {
             startActivity(Intent(this, ListActivity::class.java))
         }
+        tvListCover.setOnClickListener {
+            startActivity(Intent(this, ListActivity::class.java).apply {
+                putExtra("cover", true)
+            })
+        }
         tvGrid.setOnClickListener {
             startActivity(Intent(this, GridActivity::class.java))
         }

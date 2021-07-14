@@ -2,6 +2,7 @@ package com.wp.exposure
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.module.LoadMoreModule
@@ -19,6 +20,11 @@ class ListActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list)
+        coverView.visibility = if (intent.getBooleanExtra("cover", false)) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
         initData()
         srlRefreshLayout.setOnRefreshListener {
             Log.d("ListActivity", "开始刷新列表")
@@ -72,15 +78,16 @@ class ListActivity : AppCompatActivity() {
                     ) {
                         Log.i(
                             "ListActivity", "${bindExposureData}${
-                            if (inExposure) {
-                                "开始曝光"
-                            } else {
-                                "结束曝光"
-                            }
+                                if (inExposure) {
+                                    "开始曝光"
+                                } else {
+                                    "结束曝光"
+                                }
                             }"
                         )
                     }
-                })
+                }
+            )
     }
 }
 

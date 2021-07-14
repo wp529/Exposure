@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.wp.exposure.model.InExposureData
 import com.wp.exposure.model.VisibleItemPositionRange
-import java.lang.ClassCastException
 
 /**
  * 为了减少收集异常,使用此库需注意以下几点
@@ -33,6 +32,7 @@ import java.lang.ClassCastException
  * 非必传参数
  * @param lifecycleOwner RecyclerView感知此生命周期组件,根据生命周期感知RV可见性,以便自动处理开始曝光和结束曝光,一般情况RV在Activity中传Activity,在Fragment中传Fragment
  * @param exposureValidAreaPercent 默认为0,判定曝光的面积,即大于这个面积才算做曝光,百分制,eg:设置为50 item的面积为200平方,则必须要展示200 * 50% = 100平方及以上才算为曝光
+ * @param mayBeHaveCoveredView 是否收集曝光的View可能被其他View遮挡,默认为可能被遮挡,如果确定不会遮挡,那么可以减少计算量
  * create by WangPing
  * on 2020/12/31
  */
@@ -40,7 +40,8 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     private val recyclerView: RecyclerView,
     private val exposureValidAreaPercent: Int = 0,
     private val exposureStateChangeListener: IExposureStateChangeListener<BindExposureData>,
-    private val lifecycleOwner: LifecycleOwner? = null
+    private val lifecycleOwner: LifecycleOwner? = null,
+    mayBeHaveCoveredView: Boolean = true
 ) {
     //处于曝光中的Item数据集合
     private val inExposureDataList = ArrayList<InExposureData<BindExposureData>>()
@@ -48,13 +49,23 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     //是否可见,不可见的状态就不触发收集了。主要是为了避免RV处于滚动惯性中然后退出后台导致收集异常
     private var visible = true
 
+    //可能遮挡RecyclerView的View集合
+    private var maybeCoverRVViewList: List<View>? = null
+
     init {
+        maybeCoverRVViewList = if (mayBeHaveCoveredView) {
+            recyclerView.getParentsBrotherLevelViewList()
+        } else {
+            null
+        }
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 if (visible) {
                     val startTime = System.currentTimeMillis()
-                    recordExposureData()
+                    recyclerView.post {
+                        recordExposureData()
+                    }
                     Log.v(
                         this@RecyclerViewExposureHelper.logTag,
                         "一次滑动收集曝光耗时: ${System.currentTimeMillis() - startTime}毫秒"
@@ -77,7 +88,9 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
                             //这里在删除或者添加数据时候如果有itemAnimator,那么可能会导致可见position区间获取不正确
                             //因为在这里获取可见的position区间时动画才刚执行,肯定与动画执行完后的item位置有差异,所以导致不正确
                             //暂不解决,解决可以获取RV的动画对象,然后监听动画完毕后再执行此方法
-                            recordExposureData()
+                            recyclerView.post {
+                                recordExposureData()
+                            }
                         }
                     })
                 }
@@ -140,7 +153,9 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     fun onVisible() {
         Log.v(this.logTag, "外部告知RecyclerView可见了")
         visible = true
-        recordExposureData()
+        recyclerView.post {
+            recordExposureData()
+        }
     }
 
     /**
@@ -160,16 +175,22 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     fun onScroll() {
         if (visible) {
             Log.v(this.logTag, "外部告知RecyclerView滚动了")
-            recordExposureData()
+            recyclerView.post {
+                recordExposureData()
+            }
         }
     }
+
 
     //收集开始曝光和结束曝光的数据
     private fun recordExposureData() {
         val layoutManager = recyclerView.layoutManager ?: return
         val visibleItemPositionRange = getVisibleItemPositionRange(layoutManager) ?: return
         //View可见不代表满足曝光中的条件。例如业务要求可见面积大于50%才算曝光中
-        val visiblePositions = IntRange(visibleItemPositionRange.firstVisibleItemPosition,visibleItemPositionRange.lastVisibleItemPosition)
+        val visiblePositions = IntRange(
+            visibleItemPositionRange.firstVisibleItemPosition,
+            visibleItemPositionRange.lastVisibleItemPosition
+        )
         Log.d(this.logTag, "当前可见的position范围: $visiblePositions")
         //当前所有可见的曝光中的数据
         val currentVisibleBindExposureDataList = ArrayList<InExposureData<BindExposureData>>()
@@ -262,13 +283,13 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     private fun findAllProvideExposureDataView(rootView: View?): List<IProvideExposureData>? {
         rootView ?: return null
         val provideExposureDataViewList = ArrayList<IProvideExposureData>()
-        if (rootView is IProvideExposureData && rootView.getVisibleAreaPercent() >= exposureValidAreaPercent) {
+        if (rootView is IProvideExposureData && rootView.getVisibleAreaPercent(maybeCoverRVViewList) >= exposureValidAreaPercent) {
             provideExposureDataViewList.add(rootView)
         }
         if (rootView is ViewGroup) {
             repeat(rootView.childCount) {
                 val child = rootView.getChildAt(it)
-                if (child is IProvideExposureData && child.getVisibleAreaPercent() >= exposureValidAreaPercent) {
+                if (child is IProvideExposureData && child.getVisibleAreaPercent(maybeCoverRVViewList) >= exposureValidAreaPercent) {
                     provideExposureDataViewList.add(child)
                 }
             }
@@ -278,12 +299,9 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
 
     //将处于曝光的item全部结束曝光
     private fun endExposure() {
-        inExposureDataList.also {
-            //回调position结束曝光
-            it.forEach { inExposureData ->
-                //当前position绑定了曝光数据,回调结束曝光
-                invokeExposureStateChange(inExposureData.data, inExposureData.position, false)
-            }
+        inExposureDataList.onEach { inExposureData ->
+            //当前position绑定了曝光数据,回调结束曝光
+            invokeExposureStateChange(inExposureData.data, inExposureData.position, false)
         }.also {
             //清空曝光中position集合
             it.clear()
