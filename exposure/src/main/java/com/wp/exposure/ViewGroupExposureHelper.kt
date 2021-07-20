@@ -31,7 +31,7 @@ import java.lang.ClassCastException
  */
 class ViewGroupExposureHelper<in BindExposureData> @JvmOverloads constructor(
     private val rootView: ViewGroup,
-    private val exposureValidAreaPercent: Int = 0,
+    private var exposureValidAreaPercent: Int = 1,
     private val exposureStateChangeListener: IExposureStateChangeListener<BindExposureData>,
     private val lifecycleOwner: LifecycleOwner? = null,
     private val skipRecyclerView: Boolean = true,
@@ -47,6 +47,11 @@ class ViewGroupExposureHelper<in BindExposureData> @JvmOverloads constructor(
     private var maybeCoverViewGroupViewList: List<View>? = null
 
     init {
+        if (exposureValidAreaPercent < 1) {
+            exposureValidAreaPercent = 1
+        } else if (exposureValidAreaPercent > 100) {
+            exposureValidAreaPercent = 100
+        }
         maybeCoverViewGroupViewList = if (mayBeHaveCoveredView) {
             rootView.getParentsBrotherLevelViewList()
         } else {

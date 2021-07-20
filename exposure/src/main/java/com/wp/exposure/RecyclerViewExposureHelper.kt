@@ -38,7 +38,7 @@ import com.wp.exposure.model.VisibleItemPositionRange
  */
 class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     private val recyclerView: RecyclerView,
-    private val exposureValidAreaPercent: Int = 0,
+    private var exposureValidAreaPercent: Int = 1,
     private val exposureStateChangeListener: IExposureStateChangeListener<BindExposureData>,
     private val lifecycleOwner: LifecycleOwner? = null,
     mayBeHaveCoveredView: Boolean = false
@@ -53,6 +53,11 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     private var maybeCoverRVViewList: List<View>? = null
 
     init {
+        if (exposureValidAreaPercent < 1) {
+            exposureValidAreaPercent = 1
+        } else if (exposureValidAreaPercent > 100) {
+            exposureValidAreaPercent = 100
+        }
         maybeCoverRVViewList = if (mayBeHaveCoveredView) {
             recyclerView.getParentsBrotherLevelViewList()
         } else {
