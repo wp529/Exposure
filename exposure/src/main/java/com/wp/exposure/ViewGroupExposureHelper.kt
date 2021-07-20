@@ -35,7 +35,7 @@ class ViewGroupExposureHelper<in BindExposureData> @JvmOverloads constructor(
     private val exposureStateChangeListener: IExposureStateChangeListener<BindExposureData>,
     private val lifecycleOwner: LifecycleOwner? = null,
     private val skipRecyclerView: Boolean = true,
-    mayBeHaveCoveredView: Boolean = true
+    mayBeHaveCoveredView: Boolean = false
 ) {
     //处于曝光中的Item数据集合
     private val inExposureDataList = ArrayList<InExposureData<BindExposureData>>()

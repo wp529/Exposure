@@ -32,7 +32,7 @@ import com.wp.exposure.model.VisibleItemPositionRange
  * 非必传参数
  * @param lifecycleOwner RecyclerView感知此生命周期组件,根据生命周期感知RV可见性,以便自动处理开始曝光和结束曝光,一般情况RV在Activity中传Activity,在Fragment中传Fragment
  * @param exposureValidAreaPercent 默认为0,判定曝光的面积,即大于这个面积才算做曝光,百分制,eg:设置为50 item的面积为200平方,则必须要展示200 * 50% = 100平方及以上才算为曝光
- * @param mayBeHaveCoveredView 是否收集曝光的View可能被其他View遮挡,默认为可能被遮挡,如果确定不会遮挡,那么可以减少计算量
+ * @param mayBeHaveCoveredView 是否收集曝光的View可能被其他View遮挡,默认为不被遮挡,如果可能会遮挡,那么可以置为true
  * create by WangPing
  * on 2020/12/31
  */
@@ -41,7 +41,7 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     private val exposureValidAreaPercent: Int = 0,
     private val exposureStateChangeListener: IExposureStateChangeListener<BindExposureData>,
     private val lifecycleOwner: LifecycleOwner? = null,
-    mayBeHaveCoveredView: Boolean = true
+    mayBeHaveCoveredView: Boolean = false
 ) {
     //处于曝光中的Item数据集合
     private val inExposureDataList = ArrayList<InExposureData<BindExposureData>>()
@@ -259,7 +259,7 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     private fun getExposureDataListByPosition(position: Int): List<InExposureData<BindExposureData>>? {
         val provideExposureDataViewList =
             findAllProvideExposureDataView(recyclerView.layoutManager?.findViewByPosition(position))
-        if (provideExposureDataViewList == null) {
+        if (provideExposureDataViewList.isNullOrEmpty()) {
             Log.w(this.logTag, "position为${position}的ItemView没有实现IProvideExposureData接口,无法处理曝光")
             return null
         }
@@ -279,22 +279,28 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
         return inExposureDataListResult
     }
 
-    //最多只找到rootView的直接子View,不再向下找了,怕影响性能。一般都能满足需求了
-    private fun findAllProvideExposureDataView(rootView: View?): List<IProvideExposureData>? {
-        rootView ?: return null
-        val provideExposureDataViewList = ArrayList<IProvideExposureData>()
+    //获取当前ViewGroup节点下所有绑定了曝光数据的集合
+    private fun findAllProvideExposureDataView(rootView: View?): List<IProvideExposureData> {
+        val currentVisibleBindExposureDataList = ArrayList<IProvideExposureData>()
+        rootView ?: return currentVisibleBindExposureDataList
         if (rootView is IProvideExposureData && rootView.getVisibleAreaPercent(maybeCoverRVViewList) >= exposureValidAreaPercent) {
-            provideExposureDataViewList.add(rootView)
+            //当前节点已经支持统计曝光了,那么就不需要再向下找了
+            currentVisibleBindExposureDataList.add(rootView)
+            return currentVisibleBindExposureDataList
         }
-        if (rootView is ViewGroup) {
-            repeat(rootView.childCount) {
-                val child = rootView.getChildAt(it)
-                if (child is IProvideExposureData && child.getVisibleAreaPercent(maybeCoverRVViewList) >= exposureValidAreaPercent) {
-                    provideExposureDataViewList.add(child)
-                }
-            }
+        if (rootView !is ViewGroup) {
+            return emptyList()
         }
-        return provideExposureDataViewList
+        repeat(rootView.childCount) {
+            currentVisibleBindExposureDataList.addAll(
+                findAllProvideExposureDataView(
+                    rootView.getChildAt(
+                        it
+                    )
+                )
+            )
+        }
+        return currentVisibleBindExposureDataList
     }
 
     //将处于曝光的item全部结束曝光
