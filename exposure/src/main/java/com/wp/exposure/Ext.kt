@@ -46,7 +46,11 @@ internal fun View?.getVisibleAreaPercent(maybeCoveredViewList: List<View>?): Int
         }
     }
     val totalArea = width * height
-    val visibleArea = (currentViewRect.right - currentViewRect.left) * (currentViewRect.bottom - currentViewRect.top) - maxCoveredArea
+    if (totalArea == 0) {
+        return 0
+    }
+    val visibleArea =
+        (currentViewRect.right - currentViewRect.left) * (currentViewRect.bottom - currentViewRect.top) - maxCoveredArea
     return (visibleArea * 1.0f / totalArea * 100).toInt()
 }
 
