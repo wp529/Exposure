@@ -23,6 +23,7 @@ import java.lang.ClassCastException
  * 非必传参数
  * @param lifecycleOwner ViewExposureHelper感知此生命周期组件,根据生命周期感知可见性,以便自动处理开始曝光和结束曝光,一般情况下传View集合所在宿主,在Activity中传Activity,在Fragment中传Fragment
  * @param exposureValidAreaPercent 默认为0,判定曝光的面积,即大于这个面积才算做曝光,百分制,eg:设置为50 item的面积为200平方,则必须要展示200 * 50% = 100平方及以上才算为曝光
+ * @param mayBeCoveredViewList 可能会遮挡曝光收集View的View集合
  * create by WangPing
  * on 2021/08/06
  */
@@ -30,7 +31,8 @@ class ViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     private val viewList: MutableList<View>,
     private var exposureValidAreaPercent: Int = 1,
     private val exposureStateChangeListener: IExposureStateChangeListener<BindExposureData>,
-    private val lifecycleOwner: LifecycleOwner? = null
+    private val lifecycleOwner: LifecycleOwner? = null,
+    private val mayBeCoveredViewList: List<View>? = null
 ) {
     //处于曝光中的Item数据集合
     private val inExposureDataList = ArrayList<InExposureData<BindExposureData>>()
@@ -118,28 +120,30 @@ class ViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     //收集开始曝光和结束曝光的数据
     private fun recordExposureData() {
         //当前所有可见的曝光中的数据
-        val currentVisibleBindExposureDataList = getViewListBindExposureDataList()
-        currentVisibleBindExposureDataList.forEach {
-            if (it !in inExposureDataList) {
-                //当前可见位置不在曝光中集合,代表是从不可见变为可见,那么此position开始曝光
-                inExposureDataList.add(it)
-                invokeExposureStateChange(
-                    it.data,
-                    it.position,
-                    true
-                )
+        viewList.firstOrNull()?.post {
+            val currentVisibleBindExposureDataList = getViewListBindExposureDataList()
+            currentVisibleBindExposureDataList.forEach {
+                if (it !in inExposureDataList) {
+                    //当前可见位置不在曝光中集合,代表是从不可见变为可见,那么此position开始曝光
+                    inExposureDataList.add(it)
+                    invokeExposureStateChange(
+                        it.data,
+                        it.position,
+                        true
+                    )
+                }
             }
-        }
-        inExposureDataList.filter { inExposureData ->
-            //过滤出处于曝光中但在当前扫描的时候不再处于可见位的曝光数据
-            inExposureData !in currentVisibleBindExposureDataList
-        }.also {
-            //更改为结束曝光状态
-            it.forEach { inExposureData ->
-                invokeExposureStateChange(inExposureData.data, inExposureData.position, false)
+            inExposureDataList.filter { inExposureData ->
+                //过滤出处于曝光中但在当前扫描的时候不再处于可见位的曝光数据
+                inExposureData !in currentVisibleBindExposureDataList
+            }.also {
+                //更改为结束曝光状态
+                it.forEach { inExposureData ->
+                    invokeExposureStateChange(inExposureData.data, inExposureData.position, false)
+                }
+                //移除出正在曝光中的集合
+                inExposureDataList.removeAll(it)
             }
-            //移除出正在曝光中的集合
-            inExposureDataList.removeAll(it)
         }
     }
 
@@ -148,7 +152,7 @@ class ViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
         val currentVisibleBindExposureDataList = ArrayList<InExposureData<BindExposureData>>()
         viewList.forEach { beRecordExposureView ->
             if (beRecordExposureView is IProvideExposureData
-                && beRecordExposureView.getVisibleAreaPercent(maybeCoveredViewList = null) >= exposureValidAreaPercent
+                && beRecordExposureView.getVisibleAreaPercent(mayBeCoveredViewList) >= exposureValidAreaPercent
             ) {
                 @Suppress("UNCHECKED_CAST")
                 val bindExposureData = beRecordExposureView.provideData() as? BindExposureData
@@ -161,7 +165,7 @@ class ViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
                         )
                     )
                 }
-            } else if (beRecordExposureView is ViewGroup) {
+            } else if (beRecordExposureView is ViewGroup && beRecordExposureView.visibility == View.VISIBLE) {
                 currentVisibleBindExposureDataList.addAll(
                     getViewGroupVisibleBindExposureDataList(
                         beRecordExposureView
@@ -179,7 +183,7 @@ class ViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
             val childView = viewGroup.getChildAt(it)
             if (childView is IProvideExposureData) {
                 //当前子View需要收集曝光,不再向此childView的子View传递
-                if (childView.getVisibleAreaPercent(maybeCoveredViewList = null) >= exposureValidAreaPercent) {
+                if (childView.getVisibleAreaPercent(mayBeCoveredViewList) >= exposureValidAreaPercent) {
                     //满足曝光条件
                     @Suppress("UNCHECKED_CAST")
                     val bindExposureData = childView.provideData() as? BindExposureData
