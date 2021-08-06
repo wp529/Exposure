@@ -3,6 +3,7 @@ package com.wp.exposure
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.core.widget.NestedScrollView
@@ -18,8 +19,13 @@ class CollectViewGroupActivity : AppCompatActivity() {
         test2.exposureBindData = "test2"
         test3.exposureBindData = "test3"
         test4.exposureBindData = "test4"
-        val helper = ViewGroupExposureHelper(
-            rootView = root,
+        val list = ArrayList<View>()
+        list.add(test1)
+        list.add(test2)
+        list.add(test3)
+        list.add(test4)
+        val helper = ViewExposureHelper(
+            viewList = list,
             exposureValidAreaPercent = 50,
             lifecycleOwner = this,
             exposureStateChangeListener = object : IExposureStateChangeListener<String> {
@@ -46,7 +52,7 @@ class CollectViewGroupActivity : AppCompatActivity() {
         }
         test1.setOnClickListener {
             test1.isVisible = false
-            helper.childViewVisibleChange()
+            helper.viewVisibleChange()
         }
     }
 }

@@ -14,6 +14,9 @@ internal val Any.logTag
  */
 internal fun View?.getVisibleAreaPercent(maybeCoveredViewList: List<View>?): Int {
     this ?: return 0
+    if (this.visibility != View.VISIBLE) {
+        return 0
+    }
     val currentViewRect = Rect()
     if (!getGlobalVisibleRect(currentViewRect)) {
         //当前View不可见,直接返回0
