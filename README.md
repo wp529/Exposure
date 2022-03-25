@@ -1,7 +1,7 @@
 [![](https://jitpack.io/v/wp529/Exposure.svg)](https://jitpack.io/#wp529/Exposure)
 ### Exposure
 
-​	Exposure是一个很方便对View进行曝光埋点收集的库，在现有代码上少量侵入即可实现View的曝光埋点。支持对ViewGroup的子View进行曝光收集,支持RV的线性布局、网格布局、瀑布流布局，横向滑动曝光埋点。支持配置item的有效曝光面积。
+Exposure是一个很方便对View进行曝光埋点收集的库，在现有代码上少量侵入即可实现View的曝光埋点。支持对ViewGroup的子View进行曝光收集,支持RV的线性布局、网格布局、瀑布流布局，横向滑动曝光埋点。支持配置item的有效曝光面积。
 
 **添加依赖:**
 
