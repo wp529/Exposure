@@ -19,9 +19,7 @@ dependencies {
 
 ###### 使用方式：
 
-1. 将View的根布局替换为对应的LayoutView，内部提供了三个LayoutView，若需更多的LayoutView可以自行实现IProvideExposureData接口
-
-   ExposureLinearLayout，ExposureFrameLayout，ExposureRelativeLayout
+1. 将需要采集曝光的View替换为对应的曝光View，库里面提供了三个曝光View ***(ExposureLinearLayout，ExposureFrameLayout，ExposureRelativeLayout)***，若需其他类型的曝光View可以自行让对应View实现IProvideExposureData接口
 
    ```xml
    <?xml version="1.0" encoding="utf-8"?>
@@ -39,14 +37,14 @@ dependencies {
    </com.wp.exposure.view.ExposureLinearLayout>
    ```
 
-2. 为LayoutView绑定上曝光的数据
+2. 为曝光View绑定上对应的曝光数据
 
    ```kotlin
    //注:这里的data对象最好实现了equals方法
    exposureRoot.exposureBindData = data
    ```
-
-3. 对RecyclerView进行曝光收集,在给RV设置完adapter后实例化RecyclerViewExposureHelper，实例化时需传递四个参数，需要做曝光埋点的RV，RV所在的生命周期组件容器(用于自动处理开始曝光和结束曝光),item曝光状态改变监听器(泛型类型为第二步中data的类型)，item的有效曝光面积判定，eg:设置为50 若item的面积为200平方,则必须要展示200 * 50% = 100平方及以上才算为曝光
+### 在RecyclerView中使用
+在给RecyclerView设置完adapter后实例化RecyclerViewExposureHelper，实例化时需传递四个参数，需要做曝光埋点的RV，RV所在的生命周期组件容器(用于自动处理开始曝光和结束曝光),item曝光状态改变监听器(泛型类型为第二步中data的类型)，item的有效曝光面积判定，eg:设置为50 若item的面积为200平方,则必须要展示200 * 50% = 100平方及以上才算为曝光
 
    ```kotlin
    recyclerViewExposureHelper =
