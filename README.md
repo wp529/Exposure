@@ -44,7 +44,7 @@ dependencies {
    exposureRoot.exposureBindData = data
    ```
 ### RecyclerView添加曝光收集
-在给RecyclerView设置完adapter后实例化RecyclerViewExposureHelper，实例化时需传递五个参数
+在给RecyclerView设置完adapter后实例化RecyclerViewExposureHelper，必须在设置完adapter后才能实例化的原因是为了能让RecyclerViewExposureHelper在adapter调用更新item方法后可以自动计算曝光数据。实例化时需传递五个参数
 * recyclerView 需要收集曝光的RecyclerView
 * exposureValidAreaPercent 判定曝光的面积,即大于这个面积才算做曝光,百分制,eg:设置为50 item的面积为200平方,则必须要展示200 * 50% = 100平方及以上才算为曝光
 * lifecycleOwner RecyclerView感知此生命周期组件,根据生命周期感知RV可见性,以便自动处理开始曝光和结束曝光,一般情况RV在Activity中传Activity,在Fragment中传Fragment
