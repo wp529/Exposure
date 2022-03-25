@@ -28,20 +28,19 @@ import com.wp.exposure.model.VisibleItemPositionRange
  * 所以只需在特定位置调用埋点SDK的api即可,至于曝光时长是否为有效曝光由埋点SDK进行计算
  * @constructor 创建一个RecyclerView曝光收集实例,必传两个参数。
  * @param recyclerView 需要收集曝光的RecyclerView
- * @param exposureStateChangeListener 曝光状态改变监听器
- * 非必传参数
+ * @param exposureValidAreaPercent 判定曝光的面积,即大于这个面积才算做曝光,百分制,eg:设置为50 item的面积为200平方,则必须要展示200 * 50% = 100平方及以上才算为曝光
  * @param lifecycleOwner RecyclerView感知此生命周期组件,根据生命周期感知RV可见性,以便自动处理开始曝光和结束曝光,一般情况RV在Activity中传Activity,在Fragment中传Fragment
- * @param exposureValidAreaPercent 默认为0,判定曝光的面积,即大于这个面积才算做曝光,百分制,eg:设置为50 item的面积为200平方,则必须要展示200 * 50% = 100平方及以上才算为曝光
- * @param mayBeHaveCoveredView 是否收集曝光的View可能被其他View遮挡,默认为不被遮挡,如果可能会遮挡,那么可以置为true
+ * @param mayBeCoveredViewList 可能会遮挡RV的View集合
+ * @param exposureStateChangeListener 曝光状态改变监听器
  * create by WangPing
  * on 2020/12/31
  */
-class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
+class RecyclerViewExposureHelper<in BindExposureData> constructor(
     private val recyclerView: RecyclerView,
-    private var exposureValidAreaPercent: Int = 1,
-    private val exposureStateChangeListener: IExposureStateChangeListener<BindExposureData>,
-    private val lifecycleOwner: LifecycleOwner? = null,
-    mayBeHaveCoveredView: Boolean = false
+    private var exposureValidAreaPercent: Int,
+    private val lifecycleOwner: LifecycleOwner?,
+    private val mayBeCoveredViewList: List<View>?,
+    private val exposureStateChangeListener: IExposureStateChangeListener<BindExposureData>
 ) {
     //处于曝光中的Item数据集合
     private val inExposureDataList = ArrayList<InExposureData<BindExposureData>>()
@@ -49,19 +48,11 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     //是否可见,不可见的状态就不触发收集了。主要是为了避免RV处于滚动惯性中然后退出后台导致收集异常
     private var visible = true
 
-    //可能遮挡RecyclerView的View集合
-    private var maybeCoverRVViewList: List<View>? = null
-
     init {
         if (exposureValidAreaPercent < 1) {
             exposureValidAreaPercent = 1
         } else if (exposureValidAreaPercent > 100) {
             exposureValidAreaPercent = 100
-        }
-        maybeCoverRVViewList = if (mayBeHaveCoveredView) {
-            recyclerView.getParentsBrotherLevelViewList()
-        } else {
-            null
         }
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -288,7 +279,7 @@ class RecyclerViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
     private fun findAllProvideExposureDataView(rootView: View?): List<IProvideExposureData> {
         val currentVisibleBindExposureDataList = ArrayList<IProvideExposureData>()
         rootView ?: return currentVisibleBindExposureDataList
-        if (rootView is IProvideExposureData && rootView.getVisibleAreaPercent(maybeCoverRVViewList) >= exposureValidAreaPercent) {
+        if (rootView is IProvideExposureData && rootView.getVisibleAreaPercent(mayBeCoveredViewList) >= exposureValidAreaPercent) {
             //当前节点已经支持统计曝光了,那么就不需要再向下找了
             currentVisibleBindExposureDataList.add(rootView)
             return currentVisibleBindExposureDataList

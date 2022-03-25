@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.core.widget.NestedScrollView
 import kotlinx.android.synthetic.main.activity_collect_view_group.*
-import kotlinx.android.synthetic.main.activity_main.*
 
 class CollectViewGroupActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
@@ -28,6 +27,7 @@ class CollectViewGroupActivity : AppCompatActivity() {
             viewList = list,
             exposureValidAreaPercent = 50,
             lifecycleOwner = this,
+            mayBeCoveredViewList = null,
             exposureStateChangeListener = object : IExposureStateChangeListener<String> {
                 @SuppressLint("LongLogTag")
                 override fun onExposureStateChange(

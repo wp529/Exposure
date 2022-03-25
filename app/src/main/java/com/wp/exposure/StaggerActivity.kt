@@ -28,6 +28,7 @@ class StaggerActivity : AppCompatActivity() {
                 recyclerView = rvStagger,
                 exposureValidAreaPercent = 50,
                 lifecycleOwner = this,
+                mayBeCoveredViewList = null,
                 exposureStateChangeListener = object : IExposureStateChangeListener<String> {
                     override fun onExposureStateChange(
                         bindExposureData: String,

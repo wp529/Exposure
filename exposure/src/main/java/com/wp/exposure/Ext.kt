@@ -2,7 +2,6 @@ package com.wp.exposure
 
 import android.graphics.Rect
 import android.view.View
-import android.view.ViewGroup
 
 internal val Any.logTag
     get() = this.javaClass.kotlin.simpleName ?: "ExposureRecyclerView"
@@ -55,30 +54,4 @@ internal fun View?.getVisibleAreaPercent(maybeCoveredViewList: List<View>?): Int
     val visibleArea =
         (currentViewRect.right - currentViewRect.left) * (currentViewRect.bottom - currentViewRect.top) - maxCoveredArea
     return (visibleArea * 1.0f / totalArea * 100).toInt()
-}
-
-/**
- * 获取当前View的所有直接上级View的右兄弟节点View
- * @return 直接上级View的右兄弟节点View集合
- */
-internal fun View?.getParentsBrotherLevelViewList(): List<View> {
-    this ?: return emptyList()
-    val parentViewGroup = (parent as? ViewGroup) ?: return emptyList()
-    val brotherLevelViewList = ArrayList<View>()
-    parentViewGroup.indexOfChild(this)
-    //根据Android绘制机制,只有当前View后面的平级View才可能遮挡当前View
-    //eg:只有CView才可能遮挡BView
-    // <FrameLayout>
-    //    <AView></AView>
-    //    <BView></BView>
-    //    <CView></CView>
-    // </FrameLayout>
-    for (index in (parentViewGroup.indexOfChild(this) + 1) until parentViewGroup.childCount) {
-        val child = parentViewGroup.getChildAt(index)
-        if (child != this) {
-            brotherLevelViewList.add(child)
-        }
-    }
-    brotherLevelViewList.addAll(parentViewGroup.getParentsBrotherLevelViewList())
-    return brotherLevelViewList
 }

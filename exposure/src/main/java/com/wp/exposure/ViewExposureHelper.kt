@@ -16,23 +16,21 @@ import java.lang.ClassCastException
  * 1.需配合实现了IProvideExposureData接口的LayoutView使用
  * @see com.wp.exposure.IProvideExposureData
  * 2.BindExposureData泛型实际类型最好重写equals方法。
- *
  * 对指定View集合下的子View进行曝光数据的收集
  * @param viewList 需要收集曝光的View集合
- * @param exposureStateChangeListener 曝光状态改变监听器
- * 非必传参数
- * @param lifecycleOwner ViewExposureHelper感知此生命周期组件,根据生命周期感知可见性,以便自动处理开始曝光和结束曝光,一般情况下传View集合所在宿主,在Activity中传Activity,在Fragment中传Fragment
- * @param exposureValidAreaPercent 默认为0,判定曝光的面积,即大于这个面积才算做曝光,百分制,eg:设置为50 item的面积为200平方,则必须要展示200 * 50% = 100平方及以上才算为曝光
+ * @param exposureValidAreaPercent 判定曝光的面积,即大于这个面积才算做曝光,百分制,eg:设置为50 item的面积为200平方,则必须要展示200 * 50% = 100平方及以上才算为曝光
+ * @param lifecycleOwner ViewExposureHelper会感知此生命周期组件,根据生命周期感知可见性,以便自动处理开始曝光和结束曝光,一般情况下传View集合所在宿主,在Activity中传Activity,在Fragment中传Fragment
  * @param mayBeCoveredViewList 可能会遮挡曝光收集View的View集合
+ * @param exposureStateChangeListener View曝光状态改变监听器
  * create by WangPing
  * on 2021/08/06
  */
-class ViewExposureHelper<in BindExposureData> @JvmOverloads constructor(
+class ViewExposureHelper<in BindExposureData> constructor(
     private val viewList: MutableList<View>,
-    private var exposureValidAreaPercent: Int = 1,
-    private val exposureStateChangeListener: IExposureStateChangeListener<BindExposureData>,
-    private val lifecycleOwner: LifecycleOwner? = null,
-    private val mayBeCoveredViewList: List<View>? = null
+    private var exposureValidAreaPercent: Int,
+    private val lifecycleOwner: LifecycleOwner?,
+    private val mayBeCoveredViewList: List<View>?,
+    private val exposureStateChangeListener: IExposureStateChangeListener<BindExposureData>
 ) {
     //处于曝光中的Item数据集合
     private val inExposureDataList = ArrayList<InExposureData<BindExposureData>>()

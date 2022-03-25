@@ -63,6 +63,7 @@ class GridActivity : AppCompatActivity() {
             recyclerView = rvGrid,
             exposureValidAreaPercent = 50,
             lifecycleOwner = this,
+            mayBeCoveredViewList = null,
             exposureStateChangeListener = object : IExposureStateChangeListener<GridData> {
                 override fun onExposureStateChange(
                     bindExposureData: GridData,

@@ -70,6 +70,11 @@ class ListActivity : AppCompatActivity() {
                 recyclerView = rvList,
                 exposureValidAreaPercent = 50,
                 lifecycleOwner = this,
+                mayBeCoveredViewList = if (intent.getBooleanExtra("cover", false)) {
+                    arrayListOf(coverView)
+                } else {
+                    null
+                },
                 exposureStateChangeListener = object : IExposureStateChangeListener<String> {
                     override fun onExposureStateChange(
                         bindExposureData: String,
