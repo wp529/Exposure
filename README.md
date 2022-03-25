@@ -43,6 +43,9 @@ dependencies {
    //注:这里的data对象最好实现了equals方法
    exposureRoot.exposureBindData = data
    ```
+   
+# 以下两种方式根据布局方式选择其一
+
 ### RecyclerView添加曝光收集
 在给RecyclerView设置完adapter后实例化RecyclerViewExposureHelper，必须在设置完adapter后才能实例化的原因是为了能让RecyclerViewExposureHelper在adapter调用更新item方法后可以自动计算曝光数据。实例化时需传递五个参数
 * recyclerView 需要收集曝光的RecyclerView
