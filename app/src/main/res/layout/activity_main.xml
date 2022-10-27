@@ -59,4 +59,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="收集ViewGroup子View曝光数据" />
+
+    <Button
+        android:id="@+id/tvRVInRv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="RV嵌套RV的情况" />
 </LinearLayout>

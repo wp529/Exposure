@@ -16,14 +16,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ListActivity"/>
-        <activity android:name=".GridActivity"/>
-        <activity android:name=".StaggerActivity"/>
-        <activity android:name=".VpFragmentActivity"/>
-        <activity android:name=".HorizontalRvActivity"/>
-        <activity android:name=".RvInScrollActivity"/>
-        <activity android:name=".ExposureInChildActivity"/>
-        <activity android:name=".CollectViewGroupActivity"/>
+        <activity android:name=".ListActivity" />
+        <activity android:name=".GridActivity" />
+        <activity android:name=".StaggerActivity" />
+        <activity android:name=".VpFragmentActivity" />
+        <activity android:name=".HorizontalRvActivity" />
+        <activity android:name=".RvInScrollActivity" />
+        <activity android:name=".ExposureInChildActivity" />
+        <activity android:name=".CollectViewGroupActivity" />
+        <activity android:name=".RvInRvActivity" />
     </application>
 
 </manifest>

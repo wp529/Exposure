@@ -40,6 +40,9 @@ class MainActivity : AppCompatActivity() {
         tvCollectViewGroup.setOnClickListener {
             startActivity(Intent(this, CollectViewGroupActivity::class.java))
         }
+        tvRVInRv.setOnClickListener {
+            startActivity(Intent(this, RvInRvActivity::class.java))
+        }
     }
 }
 
