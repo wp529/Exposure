@@ -75,6 +75,10 @@ class RecyclerViewExposureHelper<in BindExposureData> constructor(
             object : RecyclerView.AdapterDataObserver() {
                 override fun onChanged() {
                     Log.i(this@RecyclerViewExposureHelper.logTag, "adapter的item有改变")
+                    if (adapter.itemCount == 0) {
+                        endExposure()
+                        return
+                    }
                     //item改变,触发重新收集
                     recyclerView.viewTreeObserver.addOnGlobalLayoutListener(object :
                         ViewTreeObserver.OnGlobalLayoutListener {
