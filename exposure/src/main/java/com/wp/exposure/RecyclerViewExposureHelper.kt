@@ -81,11 +81,17 @@ class RecyclerViewExposureHelper<in BindExposureData> constructor(
                         override fun onGlobalLayout() {
                             //绑定的曝光数据刷新完毕后才重新收集
                             recyclerView.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                            //这里在删除或者添加数据时候如果有itemAnimator,那么可能会导致可见position区间获取不正确
-                            //因为在这里获取可见的position区间时动画才刚执行,肯定与动画执行完后的item位置有差异,所以导致不正确
-                            //暂不解决,解决可以获取RV的动画对象,然后监听动画完毕后再执行此方法
-                            recyclerView.post {
-                                recordExposureData()
+                            val itemAnimator = recyclerView.itemAnimator
+                            if (itemAnimator == null) {
+                                recyclerView.post {
+                                    recordExposureData()
+                                }
+                            } else {
+                                itemAnimator.isRunning {
+                                    recyclerView.post {
+                                        recordExposureData()
+                                    }
+                                }
                             }
                         }
                     })

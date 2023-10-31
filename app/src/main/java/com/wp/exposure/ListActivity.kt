@@ -39,6 +39,9 @@ class ListActivity : AppCompatActivity() {
                 Log.d("ListActivity", "刷新数据更新完毕")
             }, 2 * 1000L)
         }
+        btnAddOne.setOnClickListener {
+            adapter.addData(1, "插入的数据")
+        }
     }
 
     private fun initData() {

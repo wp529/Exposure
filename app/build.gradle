@@ -46,5 +46,5 @@ dependencies {
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
     implementation project(path: ':exposure')
     //implementation 'com.github.wp529:ExposureRecyclerView:1.1.1'
-    implementation 'com.github.donkingliang:ConsecutiveScroller:4.0.0'
+    implementation 'com.github.donkingliang:ConsecutiveScroller:4.6.4'
 }
