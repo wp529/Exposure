@@ -13,7 +13,7 @@ allprojects {
 	}
 }
 dependencies {
-	implementation 'com.github.wp529:Exposure:v1.2.3'
+	implementation 'com.github.wp529:Exposure:1.2.4'
 }
 ```
 
